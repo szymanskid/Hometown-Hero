@@ -1,5 +1,6 @@
 """CSV processing module for importing Wix data."""
 
+import re
 import pandas as pd
 from datetime import datetime
 from typing import List, Tuple
@@ -94,12 +95,11 @@ class CSVProcessor:
                 one_banner = str(row.get('One Banner', '')).strip()
                 if one_banner and one_banner != 'nan':
                     # Extract dollar amount using simple string parsing
-                    import re
                     match = re.search(r'\$(\d+(?:\.\d{2})?)', one_banner)
                     if match:
                         try:
                             amount_paid = float(match.group(1))
-                        except:
+                        except (ValueError, TypeError):
                             pass
                 
                 # Only consider it paid if status is CONFIRMED and amount > 0
@@ -112,7 +112,7 @@ class CSVProcessor:
                 if date_str and date_str != 'nan':
                     try:
                         payment_date = pd.to_datetime(date_str).to_pydatetime()
-                    except:
+                    except (ValueError, TypeError, pd.errors.ParserError):
                         pass
                 
                 payment = PaymentInfo(

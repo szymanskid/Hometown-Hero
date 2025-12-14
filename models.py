@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Tuple, List
 
 
 @dataclass
@@ -18,7 +18,7 @@ class HeroInfo:
     sponsor_email: Optional[str] = None
     sponsor_phone: Optional[str] = None
     
-    def is_complete(self) -> tuple[bool, list[str]]:
+    def is_complete(self) -> Tuple[bool, List[str]]:
         """Check if all required fields are present."""
         missing = []
         required_fields = {

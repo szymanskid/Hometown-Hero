@@ -127,6 +127,33 @@ class BannerDatabase:
     
     def _row_to_banner(self, row) -> BannerRecord:
         """Convert database row to BannerRecord object."""
+        # SQLite CURRENT_TIMESTAMP returns UTC in format: YYYY-MM-DD HH:MM:SS
+        # Parse it carefully to avoid issues
+        created_at = None
+        updated_at = None
+        
+        if row[11]:
+            try:
+                # Try ISO format first
+                created_at = datetime.fromisoformat(row[11].replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                try:
+                    # Fallback to SQLite format
+                    created_at = datetime.strptime(row[11], '%Y-%m-%d %H:%M:%S')
+                except (ValueError, TypeError):
+                    pass
+        
+        if row[12]:
+            try:
+                # Try ISO format first
+                updated_at = datetime.fromisoformat(row[12].replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                try:
+                    # Fallback to SQLite format
+                    updated_at = datetime.strptime(row[12], '%Y-%m-%d %H:%M:%S')
+                except (ValueError, TypeError):
+                    pass
+        
         return BannerRecord(
             id=row[0],
             hero_name=row[1],
@@ -139,6 +166,6 @@ class BannerDatabase:
             print_approved=bool(row[8]),
             pole_location=row[9],
             notes=row[10],
-            created_at=datetime.fromisoformat(row[11]) if row[11] else None,
-            updated_at=datetime.fromisoformat(row[12]) if row[12] else None
+            created_at=created_at,
+            updated_at=updated_at
         )
