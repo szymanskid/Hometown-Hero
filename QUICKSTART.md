@@ -44,7 +44,21 @@ python banner_manager.py list --status "incomplete"
 python banner_manager.py list --status "payment pending"
 ```
 
-### Step 3: Send Notifications
+### Step 3: Verify Documents and Photos
+
+Before sending proofs to customers, verify the quality of uploaded materials:
+
+**Verify documents:**
+```bash
+python banner_manager.py update "John Smith" documents_verified yes
+```
+
+**Verify photo meets requirements:**
+```bash
+python banner_manager.py update "John Smith" photo_verified yes
+```
+
+### Step 4: Send Proof Notifications
 
 **Option A: Text File Notifications**
 ```bash
@@ -56,9 +70,9 @@ python banner_manager.py notify --status "ready for proof"
 python banner_manager.py email-send
 ```
 
-This creates professional HTML draft emails in your M365 Drafts folder for all sponsors whose banners are ready. Review and send them manually from Outlook. Requires one-time M365 setup (see EMAIL_SETUP.md).
+This creates professional HTML draft emails in your M365 Drafts folder for all sponsors whose banners are ready (documents and photos verified). Review and send them manually from Outlook. Requires one-time M365 setup (see EMAIL_SETUP.md).
 
-### Step 4: Check for Approvals (Email Only)
+### Step 5: Check for Customer Approvals (Email Only)
 
 ```bash
 python banner_manager.py email-check
@@ -66,7 +80,17 @@ python banner_manager.py email-check
 
 Automatically reads inbox for approval responses and updates the database.
 
-### Step 5: Track Banner Progress
+### Step 6: Finalize and Print
+
+**Final approval for printing:**
+```bash
+python banner_manager.py update "John Smith" print_approved yes
+```
+
+**Submit to printer:**
+```bash
+python banner_manager.py update "John Smith" submitted_to_printer yes
+```
 
 **Assign pole location:**
 ```bash
@@ -78,20 +102,20 @@ python banner_manager.py update "John Smith" pole_location "Main St & 5th Ave"
 python banner_manager.py update "John Smith" notes "Family prefers corner location"
 ```
 
-**Mark proof as approved:**
+**Send thank you:**
 ```bash
-python banner_manager.py update "John Smith" proof_approved yes
+python banner_manager.py update "John Smith" thank_you_sent yes
 ```
 
-**Final signoff for printing:**
-```bash
-python banner_manager.py update "John Smith" print_approved yes
-```
+### Step 7: Check Status at Any Point
 
-### Step 6: Check What's Ready to Print
+Check what's ready at different stages:
 
 ```bash
-python banner_manager.py list --status "printing"
+python banner_manager.py list --status "awaiting verification"
+python banner_manager.py list --status "ready to send"
+python banner_manager.py list --status "submitted to printer"
+python banner_manager.py list --status "complete"
 ```
 
 ## Email Automation Setup (One-Time)
@@ -116,10 +140,14 @@ For automated email notifications and approval tracking:
 1. **Incomplete** - Missing information or payment
 2. **Info Complete - Payment Pending** - All info present, waiting for payment
 3. **Paid - Info Incomplete** - Payment received, missing information
-4. **Ready for Proof** - Ready to notify client
-5. **Awaiting Proof Approval** - Notification sent, waiting for client
-6. **Proof Approved** - Client approved
-7. **Ready for Printing** - Final signoff, ready to print
+4. **Paid - Awaiting Verification** - Ready for staff to verify documents and photo
+5. **Documents Verified - Photo Pending** - Documents checked, photo verification needed
+6. **Ready to Send Proof** - All verification complete, ready to email customer
+7. **Awaiting Customer Approval** - Proof sent, waiting for customer
+8. **Proof Approved by Customer** - Customer approved the proof
+9. **Approved for Printing** - Staff final signoff given
+10. **Submitted to Printer** - Sent to materialpromotions.com
+11. **Complete - Thank You Sent** - Banner displayed, thank you sent
 
 ## Tips
 
