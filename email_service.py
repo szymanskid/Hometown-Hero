@@ -98,9 +98,6 @@ class M365EmailService:
         if not proof_url:
             proof_url = "https://www.millcreekkiwanis.org/about-9"
         
-        # Generate unique approval token (using banner ID and timestamp)
-        approval_token = f"{banner.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        
         # Create email message
         try:
             message = self.mailbox.new_message()
@@ -129,8 +126,7 @@ class M365EmailService:
                 <p style="font-size: 12px; color: #666;">
                     Banner Details:<br>
                     Hero: {banner.hero_name}<br>
-                    Sponsor: {banner.sponsor_name}<br>
-                    Reference ID: {approval_token}
+                    Sponsor: {banner.sponsor_name}
                 </p>
                 
                 <p>Thank you for supporting our hometown heroes!</p>
@@ -189,43 +185,59 @@ class M365EmailService:
             for message in messages:
                 # Check if this is a reply to our proof notification
                 subject = message.subject or ""
+                body = message.body or ""
                 
-                if "Hometown Hero Banner Proof" in subject or "APPROVE" in subject.upper():
-                    # Try to extract banner reference
-                    body = message.body or ""
-                    
-                    # Look for approval keyword in subject
-                    is_approved = "APPROVE" in subject.upper()
-                    
-                    # Try to match to a banner by hero name or sponsor email
-                    sender_email = message.sender.address if message.sender else None
-                    
-                    if sender_email:
-                        # Find banner by sponsor email
-                        banners = db.get_all_banners()
-                        matching_banners = [b for b in banners 
-                                          if b.sponsor_email and 
-                                          b.sponsor_email.lower() == sender_email.lower()]
+                if "Hometown Hero Banner Proof" not in subject and "APPROVE" not in subject.upper():
+                    continue
+                
+                # Look for approval keyword in subject
+                is_approved = "APPROVE" in subject.upper()
+                
+                # Extract sender email
+                sender_email = message.sender.address if message.sender else None
+                if not sender_email:
+                    continue
+                
+                # Try to extract hero name from subject or body
+                hero_name = None
+                if "Hometown Hero Banner Proof Ready -" in subject:
+                    # Extract hero name from our original subject format
+                    parts = subject.split("Hometown Hero Banner Proof Ready -")
+                    if len(parts) > 1:
+                        hero_name = parts[1].strip()
+                
+                # Find banner by sponsor email and optionally hero name
+                banners = db.get_all_banners()
+                matching_banners = [b for b in banners 
+                                  if b.sponsor_email and 
+                                  b.sponsor_email.lower() == sender_email.lower()]
+                
+                # If we found hero name in subject, use it to match specific banner
+                if hero_name and matching_banners:
+                    matching_banners = [b for b in matching_banners 
+                                      if b.hero_name.lower() == hero_name.lower()]
+                
+                # Only update banners that haven't been approved yet
+                for banner in matching_banners:
+                    if not banner.proof_approved:
+                        # Update banner approval status
+                        banner.proof_approved = is_approved
+                        db.update_banner(banner)
                         
-                        for banner in matching_banners:
-                            if not banner.proof_approved:
-                                # Update banner approval status
-                                banner.proof_approved = is_approved
-                                db.update_banner(banner)
-                                
-                                result = {
-                                    'hero_name': banner.hero_name,
-                                    'sponsor_email': sender_email,
-                                    'approved': is_approved,
-                                    'received': message.received,
-                                    'message_id': message.object_id
-                                }
-                                results.append(result)
-                                
-                                print(f"✓ Updated {banner.hero_name}: Approved={is_approved}")
-                                
-                                # Mark message as read
-                                message.mark_as_read()
+                        result = {
+                            'hero_name': banner.hero_name,
+                            'sponsor_email': sender_email,
+                            'approved': is_approved,
+                            'received': message.received,
+                            'message_id': message.object_id
+                        }
+                        results.append(result)
+                        
+                        print(f"✓ Updated {banner.hero_name}: Approved={is_approved}")
+                        
+                        # Mark message as read
+                        message.mark_as_read()
+                        break  # Only update first matching banner to avoid duplicates
             
             return results
             
