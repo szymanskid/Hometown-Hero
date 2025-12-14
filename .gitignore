@@ -30,6 +30,10 @@ hometown_hero.db
 # Notifications
 notifications.txt
 
+# Email configuration and tokens
+m365_config.json
+o365_token.txt
+
 # IDE
 .vscode/
 .idea/

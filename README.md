@@ -9,6 +9,7 @@ A comprehensive system for managing the Millcreek Kiwanis Hometown Hero banner p
 - **Payment Verification**: Match and verify payment records against hero records
 - **Persistent Storage**: SQLite database stores pole locations and notes that persist across CSV imports
 - **Notification System**: Generate client notifications when proofs are ready
+- **Email Automation** ⭐ NEW: Automated email notifications via Microsoft 365 with approval tracking
 - **Signoff Workflow**: Track proof approval and print approval status
 - **Status Tracking**: Monitor banners through their complete lifecycle
 
@@ -68,6 +69,36 @@ This will:
 - Generate notification messages
 - Save notifications to `notifications.txt`
 - Mark banners as "proof sent"
+
+### Email Automation (Optional)
+
+**Automatically send emails and track approvals using your Microsoft 365 account:**
+
+1. **Setup** (one-time):
+   ```bash
+   python banner_manager.py email-setup
+   ```
+   Then edit `m365_config.json` with your Azure AD app credentials. See [EMAIL_SETUP.md](EMAIL_SETUP.md) for detailed setup instructions.
+
+2. **Send proof-ready emails**:
+   ```bash
+   python banner_manager.py email-send
+   ```
+   Sends professional HTML emails to all sponsors whose banners are ready for review.
+
+3. **Check for approval responses**:
+   ```bash
+   python banner_manager.py email-check
+   ```
+   Automatically reads your inbox for approval emails and updates the database.
+
+**Benefits:**
+- ✅ Professional HTML emails with approval instructions
+- ✅ Automatic database updates from email responses
+- ✅ No duplicate notifications
+- ✅ Complete audit trail
+
+See [EMAIL_SETUP.md](EMAIL_SETUP.md) for complete setup guide.
 
 ### Update Banner Information
 

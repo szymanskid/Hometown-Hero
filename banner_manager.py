@@ -17,6 +17,13 @@ from database import BannerDatabase
 from csv_processor import CSVProcessor
 from notifications import NotificationService
 
+# Optional M365 email support
+try:
+    from email_service import M365EmailService, load_m365_config, create_m365_config_template
+    EMAIL_AVAILABLE = True
+except ImportError:
+    EMAIL_AVAILABLE = False
+
 
 def import_csvs(hero_csv: str, payment_csv: str, db: BannerDatabase):
     """Import and process CSV files from Wix."""
@@ -200,6 +207,139 @@ def show_summary(db: BannerDatabase):
     print(f"\n{'='*60}\n")
 
 
+def email_setup(config_file: str = 'm365_config.json'):
+    """Setup M365 email configuration."""
+    if not EMAIL_AVAILABLE:
+        print("✗ Email functionality not available.")
+        print("  Install with: pip install O365")
+        return
+    
+    print(f"\n{'='*60}")
+    print("M365 EMAIL SETUP")
+    print(f"{'='*60}\n")
+    
+    create_m365_config_template(config_file)
+
+
+def email_send(db: BannerDatabase, config_file: str = 'm365_config.json'):
+    """Send proof ready emails via M365."""
+    if not EMAIL_AVAILABLE:
+        print("✗ Email functionality not available.")
+        print("  Install with: pip install O365")
+        return
+    
+    print(f"\n{'='*60}")
+    print("SENDING PROOF READY EMAILS")
+    print(f"{'='*60}\n")
+    
+    # Load config
+    config = load_m365_config(config_file)
+    if not config:
+        print(f"✗ Configuration file not found: {config_file}")
+        print(f"  Run 'python banner_manager.py email-setup' to create it")
+        return
+    
+    # Validate config
+    if config.get('client_id') == 'YOUR_AZURE_AD_CLIENT_ID':
+        print("✗ Configuration file not updated with real credentials")
+        print(f"  Please edit {config_file} with your Azure AD app credentials")
+        return
+    
+    # Initialize email service
+    try:
+        email_service = M365EmailService(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            tenant_id=config.get('tenant_id')
+        )
+    except Exception as e:
+        print(f"✗ Error initializing email service: {e}")
+        return
+    
+    # Authenticate
+    if not email_service.authenticate():
+        print("✗ Failed to authenticate with Microsoft 365")
+        print("  Please check your credentials in the config file")
+        return
+    
+    # Get banners ready for notification
+    banners = db.get_all_banners()
+    ready_banners = [b for b in banners 
+                    if b.payment_verified and b.info_complete and not b.proof_sent]
+    
+    if not ready_banners:
+        print("No banners ready for notification")
+        return
+    
+    print(f"Found {len(ready_banners)} banners ready for notification\n")
+    
+    # Send emails
+    stats = email_service.send_bulk_notifications(ready_banners, db)
+    
+    print(f"\n{'='*60}")
+    print(f"Emails sent: {stats['sent']}")
+    print(f"Failed: {stats['failed']}")
+    print(f"Skipped: {stats['skipped']}")
+    print(f"{'='*60}\n")
+
+
+def email_check(db: BannerDatabase, config_file: str = 'm365_config.json', days: int = 7):
+    """Check for approval responses in email."""
+    if not EMAIL_AVAILABLE:
+        print("✗ Email functionality not available.")
+        print("  Install with: pip install O365")
+        return
+    
+    print(f"\n{'='*60}")
+    print("CHECKING EMAIL FOR APPROVALS")
+    print(f"{'='*60}\n")
+    
+    # Load config
+    config = load_m365_config(config_file)
+    if not config:
+        print(f"✗ Configuration file not found: {config_file}")
+        print(f"  Run 'python banner_manager.py email-setup' to create it")
+        return
+    
+    # Validate config
+    if config.get('client_id') == 'YOUR_AZURE_AD_CLIENT_ID':
+        print("✗ Configuration file not updated with real credentials")
+        print(f"  Please edit {config_file} with your Azure AD app credentials")
+        return
+    
+    # Initialize email service
+    try:
+        email_service = M365EmailService(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            tenant_id=config.get('tenant_id')
+        )
+    except Exception as e:
+        print(f"✗ Error initializing email service: {e}")
+        return
+    
+    # Authenticate
+    if not email_service.authenticate():
+        print("✗ Failed to authenticate with Microsoft 365")
+        return
+    
+    print(f"Checking inbox for emails from last {days} days...\n")
+    
+    # Check for approvals
+    results = email_service.check_approval_responses(db, days_back=days)
+    
+    if results:
+        print(f"\n{'='*60}")
+        print(f"Processed {len(results)} approval responses:")
+        for result in results:
+            status = "✓ Approved" if result['approved'] else "⚠ Needs attention"
+            print(f"  {status}: {result['hero_name']} ({result['sponsor_email']})")
+        print(f"{'='*60}\n")
+    else:
+        print("No approval responses found")
+        print(f"{'='*60}\n")
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -233,6 +373,11 @@ Examples:
   
   # Show summary
   python banner_manager.py summary
+  
+  # Email automation (requires M365 setup)
+  python banner_manager.py email-setup
+  python banner_manager.py email-send
+  python banner_manager.py email-check --days 7
 """
     )
     
@@ -260,6 +405,17 @@ Examples:
     # Summary command
     summary_parser = subparsers.add_parser('summary', help='Show summary statistics')
     
+    # Email commands
+    if EMAIL_AVAILABLE:
+        email_setup_parser = subparsers.add_parser('email-setup', help='Setup M365 email configuration')
+        
+        email_send_parser = subparsers.add_parser('email-send', help='Send proof ready emails via M365')
+        email_send_parser.add_argument('--config', default='m365_config.json', help='Path to M365 config file')
+        
+        email_check_parser = subparsers.add_parser('email-check', help='Check inbox for approval responses')
+        email_check_parser.add_argument('--config', default='m365_config.json', help='Path to M365 config file')
+        email_check_parser.add_argument('--days', type=int, default=7, help='Days to look back for emails')
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -280,6 +436,12 @@ Examples:
         update_banner(db, args.hero_name, args.field, args.value)
     elif args.command == 'summary':
         show_summary(db)
+    elif args.command == 'email-setup':
+        email_setup(args.config if hasattr(args, 'config') else 'm365_config.json')
+    elif args.command == 'email-send':
+        email_send(db, args.config)
+    elif args.command == 'email-check':
+        email_check(db, args.config, args.days)
 
 
 if __name__ == '__main__':
