@@ -72,7 +72,7 @@ This will:
 
 ### Email Automation (Optional)
 
-**Automatically send emails and track approvals using your Microsoft 365 account:**
+**Create draft emails for client notifications using your Microsoft 365 account:**
 
 1. **Setup** (one-time):
    ```bash
@@ -80,11 +80,11 @@ This will:
    ```
    Then edit `m365_config.json` with your Azure AD app credentials. See [EMAIL_SETUP.md](EMAIL_SETUP.md) for detailed setup instructions.
 
-2. **Send proof-ready emails**:
+2. **Create draft emails**:
    ```bash
    python banner_manager.py email-send
    ```
-   Sends professional HTML emails to all sponsors whose banners are ready for review.
+   Creates professional HTML draft emails in your Drafts folder for all sponsors whose banners are ready. Review and send them manually from Outlook.
 
 3. **Check for approval responses**:
    ```bash
@@ -94,6 +94,7 @@ This will:
 
 **Benefits:**
 - ✅ Professional HTML emails with approval instructions
+- ✅ Draft emails for your review before sending
 - ✅ Automatic database updates from email responses
 - ✅ No duplicate notifications
 - ✅ Complete audit trail

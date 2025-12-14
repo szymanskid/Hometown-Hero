@@ -77,14 +77,16 @@ class M365EmailService:
     
     def send_proof_ready_email(self, banner: BannerRecord, proof_url: str = None) -> bool:
         """
-        Send proof ready notification email to sponsor.
+        Create draft email for proof ready notification.
+        
+        Note: Creates email in Drafts folder for manual review and sending.
         
         Args:
             banner: Banner record with sponsor information
             proof_url: Optional URL to the proof (defaults to website)
             
         Returns:
-            True if email sent successfully, False otherwise
+            True if draft created successfully, False otherwise
         """
         if not self.mailbox:
             print("✗ Not authenticated. Call authenticate() first.")
@@ -142,16 +144,16 @@ class M365EmailService:
             message.body = html_body
             message.body_type = 'HTML'
             
-            # Send the email
-            if message.send():
-                print(f"✓ Email sent to {banner.sponsor_email} ({banner.hero_name})")
+            # Save as draft instead of sending
+            if message.save_draft():
+                print(f"✓ Draft created for {banner.sponsor_email} ({banner.hero_name})")
                 return True
             else:
-                print(f"✗ Failed to send email to {banner.sponsor_email}")
+                print(f"✗ Failed to create draft for {banner.sponsor_email}")
                 return False
                 
         except Exception as e:
-            print(f"✗ Error sending email: {e}")
+            print(f"✗ Error creating draft: {e}")
             return False
     
     def check_approval_responses(self, db: BannerDatabase, days_back: int = 7) -> List[Dict]:
@@ -247,25 +249,27 @@ class M365EmailService:
     
     def send_bulk_notifications(self, banners: List[BannerRecord], db: BannerDatabase) -> Dict[str, int]:
         """
-        Send proof ready notifications to multiple sponsors.
+        Create draft emails for proof ready notifications.
+        
+        Note: Creates drafts in your Drafts folder for manual review and sending.
         
         Args:
             banners: List of banner records ready for notification
             db: Database instance to update proof_sent status
             
         Returns:
-            Dictionary with counts of sent, failed, and skipped emails
+            Dictionary with counts of created, failed, and skipped draft emails
         """
-        stats = {'sent': 0, 'failed': 0, 'skipped': 0}
+        stats = {'created': 0, 'failed': 0, 'skipped': 0}
         
         for banner in banners:
-            # Only send if ready and not already sent
+            # Only create draft if ready and not already sent
             if banner.payment_verified and banner.info_complete and not banner.proof_sent:
                 if self.send_proof_ready_email(banner):
-                    # Mark as sent in database
+                    # Mark as sent in database (draft created)
                     banner.proof_sent = True
                     db.update_banner(banner)
-                    stats['sent'] += 1
+                    stats['created'] += 1
                 else:
                     stats['failed'] += 1
             else:

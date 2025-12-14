@@ -222,14 +222,14 @@ def email_setup(config_file: str = 'm365_config.json'):
 
 
 def email_send(db: BannerDatabase, config_file: str = 'm365_config.json'):
-    """Send proof ready emails via M365."""
+    """Create draft emails for proof ready notifications."""
     if not EMAIL_AVAILABLE:
         print("✗ Email functionality not available.")
         print("  Install with: pip install O365")
         return
     
     print(f"\n{'='*60}")
-    print("SENDING PROOF READY EMAILS")
+    print("CREATING DRAFT EMAILS FOR PROOF READY NOTIFICATIONS")
     print(f"{'='*60}\n")
     
     # Load config
@@ -273,13 +273,16 @@ def email_send(db: BannerDatabase, config_file: str = 'm365_config.json'):
     
     print(f"Found {len(ready_banners)} banners ready for notification\n")
     
-    # Send emails
+    # Create draft emails
     stats = email_service.send_bulk_notifications(ready_banners, db)
     
     print(f"\n{'='*60}")
-    print(f"Emails sent: {stats['sent']}")
+    print(f"Draft emails created: {stats['created']}")
     print(f"Failed: {stats['failed']}")
     print(f"Skipped: {stats['skipped']}")
+    print(f"\n{'='*60}")
+    print(f"✓ Drafts are now in your Drafts folder.")
+    print(f"  Review and send them from Outlook when ready.")
     print(f"{'='*60}\n")
 
 
@@ -409,7 +412,7 @@ Examples:
     if EMAIL_AVAILABLE:
         email_setup_parser = subparsers.add_parser('email-setup', help='Setup M365 email configuration')
         
-        email_send_parser = subparsers.add_parser('email-send', help='Send proof ready emails via M365')
+        email_send_parser = subparsers.add_parser('email-send', help='Create draft emails in M365 Drafts folder for manual sending')
         email_send_parser.add_argument('--config', default='m365_config.json', help='Path to M365 config file')
         
         email_check_parser = subparsers.add_parser('email-check', help='Check inbox for approval responses')

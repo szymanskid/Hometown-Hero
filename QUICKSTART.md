@@ -51,12 +51,12 @@ python banner_manager.py list --status "payment pending"
 python banner_manager.py notify --status "ready for proof"
 ```
 
-**Option B: Automated Email (Recommended)**
+**Option B: Email Drafts (Recommended)**
 ```bash
 python banner_manager.py email-send
 ```
 
-This sends professional HTML emails to all sponsors whose banners are ready. Requires one-time M365 setup (see EMAIL_SETUP.md).
+This creates professional HTML draft emails in your M365 Drafts folder for all sponsors whose banners are ready. Review and send them manually from Outlook. Requires one-time M365 setup (see EMAIL_SETUP.md).
 
 ### Step 4: Check for Approvals (Email Only)
 

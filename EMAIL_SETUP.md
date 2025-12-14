@@ -5,7 +5,7 @@ This guide explains how to set up automated email notifications using your Micro
 ## Overview
 
 The email automation features allow you to:
-- **Send proof-ready notifications** automatically via email to sponsors
+- **Create draft emails** for proof-ready notifications that you can review and send
 - **Include approval links** in emails for easy client response
 - **Check inbox for approval responses** and automatically update the database
 - **Track email status** to avoid duplicate notifications
@@ -90,7 +90,7 @@ Open `m365_config.json` and replace:
 
 ## Step 3: Usage
 
-### Send Proof Ready Emails
+### Create Draft Emails
 
 Once banners have complete information and verified payment:
 
@@ -101,9 +101,11 @@ python banner_manager.py email-send
 This will:
 1. Connect to your M365 account
 2. Find all banners that are "Ready for Proof" and haven't been notified
-3. Send professional HTML emails to each sponsor
+3. Create professional HTML draft emails in your Drafts folder
 4. Mark banners as "proof_sent" in the database
-5. Show statistics (sent, failed, skipped)
+5. Show statistics (created, failed, skipped)
+
+**Important**: The emails are saved as drafts in your Outlook Drafts folder. Review them and send manually when ready.
 
 ### Check for Approval Responses
 
@@ -137,19 +139,20 @@ python banner_manager.py email-check --config /path/to/config.json
 
 ## Email Workflow
 
-### Complete Automated Workflow
+### Complete Workflow with Draft Emails
 
 1. **Import CSVs** (as usual):
    ```bash
    python banner_manager.py import --hero heroes.csv --payment payments.csv
    ```
 
-2. **Send automated emails** to ready sponsors:
+2. **Create draft emails** for ready sponsors:
    ```bash
    python banner_manager.py email-send
    ```
-   - Sponsors receive professional email with proof link
-   - Email asks them to reply with "APPROVE" in subject
+   - Creates draft emails in your Drafts folder
+   - Review drafts in Outlook
+   - Send manually when ready
 
 3. **Check for approvals** (run daily or as needed):
    ```bash
@@ -213,13 +216,14 @@ Hometown Hero Banner Program
 3. Ensure your Azure AD app has the correct permissions
 4. Try deleting `o365_token.txt` and re-authenticating
 
-### No Emails Sent
+### No Draft Emails Created
 
 **Check**:
 1. Banners must have `info_complete = True` and `payment_verified = True`
 2. Banners must not already have `proof_sent = True`
 3. Sponsors must have valid email addresses
 4. Run `python banner_manager.py list --status "ready for proof"` to see eligible banners
+5. Check your Drafts folder in Outlook for the created drafts
 
 ### Approvals Not Detected
 
@@ -290,11 +294,11 @@ For issues with:
 ## Summary
 
 Once configured, the email automation:
-- ✅ Sends professional notifications automatically
+- ✅ Creates professional draft notifications for your review
 - ✅ Tracks which sponsors have been notified
 - ✅ Reads inbox for approvals
 - ✅ Updates database automatically
 - ✅ Saves hours of manual email work
 - ✅ Provides audit trail of communications
 
-This gives you a fully automated notification and approval workflow while maintaining the flexibility to handle special cases manually when needed.
+This gives you a controlled notification and approval workflow where you review all emails before sending, while still automating the approval tracking and database updates.
