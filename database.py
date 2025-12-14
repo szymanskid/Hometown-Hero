@@ -27,15 +27,40 @@ class BannerDatabase:
                 sponsor_email TEXT,
                 info_complete BOOLEAN DEFAULT 0,
                 payment_verified BOOLEAN DEFAULT 0,
+                documents_verified BOOLEAN DEFAULT 0,
+                photo_verified BOOLEAN DEFAULT 0,
                 proof_sent BOOLEAN DEFAULT 0,
                 proof_approved BOOLEAN DEFAULT 0,
                 print_approved BOOLEAN DEFAULT 0,
+                submitted_to_printer BOOLEAN DEFAULT 0,
                 pole_location TEXT,
+                thank_you_sent BOOLEAN DEFAULT 0,
                 notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        
+        # Add new columns if they don't exist (for existing databases)
+        try:
+            cursor.execute("ALTER TABLE banners ADD COLUMN documents_verified BOOLEAN DEFAULT 0")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
+        try:
+            cursor.execute("ALTER TABLE banners ADD COLUMN photo_verified BOOLEAN DEFAULT 0")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
+        try:
+            cursor.execute("ALTER TABLE banners ADD COLUMN submitted_to_printer BOOLEAN DEFAULT 0")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
+        try:
+            cursor.execute("ALTER TABLE banners ADD COLUMN thank_you_sent BOOLEAN DEFAULT 0")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
         
         conn.commit()
         conn.close()
@@ -83,10 +108,14 @@ class BannerDatabase:
                 sponsor_email = ?,
                 info_complete = ?,
                 payment_verified = ?,
+                documents_verified = ?,
+                photo_verified = ?,
                 proof_sent = ?,
                 proof_approved = ?,
                 print_approved = ?,
+                submitted_to_printer = ?,
                 pole_location = ?,
+                thank_you_sent = ?,
                 notes = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
@@ -96,10 +125,14 @@ class BannerDatabase:
             banner.sponsor_email,
             banner.info_complete,
             banner.payment_verified,
+            banner.documents_verified,
+            banner.photo_verified,
             banner.proof_sent,
             banner.proof_approved,
             banner.print_approved,
+            banner.submitted_to_printer,
             banner.pole_location,
+            banner.thank_you_sent,
             banner.notes,
             banner.id
         ))
@@ -132,25 +165,30 @@ class BannerDatabase:
         created_at = None
         updated_at = None
         
-        if row[11]:
+        # Handle new schema with additional columns
+        # Schema: id, hero_name, sponsor_name, sponsor_email, info_complete, payment_verified,
+        #         documents_verified, photo_verified, proof_sent, proof_approved, print_approved,
+        #         submitted_to_printer, pole_location, thank_you_sent, notes, created_at, updated_at
+        
+        if row[15]:  # created_at is now at index 15
             try:
                 # Try ISO format first
-                created_at = datetime.fromisoformat(row[11].replace('Z', '+00:00'))
+                created_at = datetime.fromisoformat(row[15].replace('Z', '+00:00'))
             except (ValueError, AttributeError):
                 try:
                     # Fallback to SQLite format
-                    created_at = datetime.strptime(row[11], '%Y-%m-%d %H:%M:%S')
+                    created_at = datetime.strptime(row[15], '%Y-%m-%d %H:%M:%S')
                 except (ValueError, TypeError):
                     pass
         
-        if row[12]:
+        if row[16]:  # updated_at is now at index 16
             try:
                 # Try ISO format first
-                updated_at = datetime.fromisoformat(row[12].replace('Z', '+00:00'))
+                updated_at = datetime.fromisoformat(row[16].replace('Z', '+00:00'))
             except (ValueError, AttributeError):
                 try:
                     # Fallback to SQLite format
-                    updated_at = datetime.strptime(row[12], '%Y-%m-%d %H:%M:%S')
+                    updated_at = datetime.strptime(row[16], '%Y-%m-%d %H:%M:%S')
                 except (ValueError, TypeError):
                     pass
         
@@ -161,11 +199,15 @@ class BannerDatabase:
             sponsor_email=row[3],
             info_complete=bool(row[4]),
             payment_verified=bool(row[5]),
-            proof_sent=bool(row[6]),
-            proof_approved=bool(row[7]),
-            print_approved=bool(row[8]),
-            pole_location=row[9],
-            notes=row[10],
+            documents_verified=bool(row[6]),
+            photo_verified=bool(row[7]),
+            proof_sent=bool(row[8]),
+            proof_approved=bool(row[9]),
+            print_approved=bool(row[10]),
+            submitted_to_printer=bool(row[11]),
+            pole_location=row[12],
+            thank_you_sent=bool(row[13]),
+            notes=row[14],
             created_at=created_at,
             updated_at=updated_at
         )

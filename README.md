@@ -137,15 +137,67 @@ python banner_manager.py summary
 
 ## Banner Status Workflow
 
-The system tracks banners through the following statuses:
+The system tracks banners through the following statuses based on the complete verification and approval workflow:
 
 1. **Incomplete** - Missing required information or payment
 2. **Info Complete - Payment Pending** - All info present, waiting for payment
-3. **Paid - Info Incomplete** - Payment received, missing some information
-4. **Ready for Proof** - Both info and payment complete, ready to notify client
-5. **Awaiting Proof Approval** - Notification sent, waiting for client approval
-6. **Proof Approved** - Client approved the proof
-7. **Ready for Printing** - Final signoff given, banner can be printed
+3. **Paid - Info Incomplete** - Payment received, missing some information  
+4. **Paid - Awaiting Verification** - Payment received and info complete, ready for staff review
+5. **Documents Verified - Photo Pending** - Documents checked, waiting for photo verification
+6. **Ready to Send Proof** - All verification complete (documents and photo), ready to create draft email
+7. **Awaiting Customer Approval** - Proof email sent, waiting for customer to approve
+8. **Proof Approved by Customer** - Customer approved the proof
+9. **Approved for Printing** - Staff final signoff given
+10. **Submitted to Printer** - Banner sent to materialpromotions.com for printing
+11. **Complete - Thank You Sent** - Banner displayed on assigned pole, thank you sent to sponsor
+
+## Complete Workflow Steps
+
+### Initial Setup (Customer Actions)
+1. Customer enters hero data on Wix website
+2. Customer submits payment (online or mails check)
+
+### Staff Verification Process
+3. **Import CSV files** to get latest data from Wix
+4. **Verify payment received** - Ensure banner is paid for
+5. **Verify documents** - Check uploaded documents for quality and requirements:
+   ```bash
+   python banner_manager.py update "Hero Name" documents_verified yes
+   ```
+6. **Verify photo** - Ensure customer photo meets all requirements:
+   ```bash
+   python banner_manager.py update "Hero Name" photo_verified yes
+   ```
+
+### Customer Approval
+7. **Create draft email** with link to Banner list webpage:
+   ```bash
+   python banner_manager.py email-send
+   ```
+8. Review drafts in Outlook and send to customers
+9. **Check for customer approval** responses:
+   ```bash
+   python banner_manager.py email-check
+   ```
+10. **Correct any errors** reported by customer and repeat steps 7-9 if needed
+
+### Print and Display
+11. **Final approval for printing**:
+    ```bash
+    python banner_manager.py update "Hero Name" print_approved yes
+    ```
+12. **Submit to printer** (materialpromotions.com):
+    ```bash
+    python banner_manager.py update "Hero Name" submitted_to_printer yes
+    ```
+13. **Assign pole location**:
+    ```bash
+    python banner_manager.py update "Hero Name" pole_location "Main St & 5th Ave"
+    ```
+14. **Send thank you** to sponsor:
+    ```bash
+    python banner_manager.py update "Hero Name" thank_you_sent yes
+    ```
 
 ## Required Banner Information
 

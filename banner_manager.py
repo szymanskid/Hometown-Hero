@@ -169,15 +169,28 @@ def update_banner(db: BannerDatabase, hero_name: str, field: str, value: str):
     elif field == 'notes':
         banner.notes = value
         print(f"✓ Notes updated: {value}")
+    elif field == 'documents_verified':
+        banner.documents_verified = value.lower() in ['true', 'yes', '1']
+        print(f"✓ Documents verified: {banner.documents_verified}")
+    elif field == 'photo_verified':
+        banner.photo_verified = value.lower() in ['true', 'yes', '1']
+        print(f"✓ Photo verified: {banner.photo_verified}")
     elif field == 'proof_approved':
         banner.proof_approved = value.lower() in ['true', 'yes', '1']
         print(f"✓ Proof approved: {banner.proof_approved}")
     elif field == 'print_approved':
         banner.print_approved = value.lower() in ['true', 'yes', '1']
         print(f"✓ Print approved: {banner.print_approved}")
+    elif field == 'submitted_to_printer':
+        banner.submitted_to_printer = value.lower() in ['true', 'yes', '1']
+        print(f"✓ Submitted to printer: {banner.submitted_to_printer}")
+    elif field == 'thank_you_sent':
+        banner.thank_you_sent = value.lower() in ['true', 'yes', '1']
+        print(f"✓ Thank you sent: {banner.thank_you_sent}")
     else:
         print(f"Error: Unknown field '{field}'")
-        print("Available fields: pole_location, notes, proof_approved, print_approved")
+        print("Available fields: pole_location, notes, documents_verified, photo_verified,")
+        print("                  proof_approved, print_approved, submitted_to_printer, thank_you_sent")
         return
     
     db.update_banner(banner)
@@ -368,11 +381,23 @@ Examples:
   # Add notes
   python banner_manager.py update "John Smith" notes "Family requested specific location"
   
+  # Verify documents quality
+  python banner_manager.py update "John Smith" documents_verified yes
+  
+  # Verify photo meets requirements
+  python banner_manager.py update "John Smith" photo_verified yes
+  
   # Approve proof
   python banner_manager.py update "John Smith" proof_approved yes
   
   # Approve for printing
   python banner_manager.py update "John Smith" print_approved yes
+  
+  # Mark as submitted to printer
+  python banner_manager.py update "John Smith" submitted_to_printer yes
+  
+  # Mark thank you sent
+  python banner_manager.py update "John Smith" thank_you_sent yes
   
   # Show summary
   python banner_manager.py summary
@@ -402,7 +427,7 @@ Examples:
     # Update command
     update_parser = subparsers.add_parser('update', help='Update banner field')
     update_parser.add_argument('hero_name', help='Hero name to update')
-    update_parser.add_argument('field', help='Field to update (pole_location, notes, proof_approved, print_approved)')
+    update_parser.add_argument('field', help='Field to update (pole_location, notes, documents_verified, photo_verified, proof_approved, print_approved, submitted_to_printer, thank_you_sent)')
     update_parser.add_argument('value', help='New value')
     
     # Summary command

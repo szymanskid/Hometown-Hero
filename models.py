@@ -59,24 +59,36 @@ class BannerRecord:
     sponsor_email: str = ""
     info_complete: bool = False
     payment_verified: bool = False
+    documents_verified: bool = False
+    photo_verified: bool = False
     proof_sent: bool = False
     proof_approved: bool = False
     print_approved: bool = False
+    submitted_to_printer: bool = False
     pole_location: Optional[str] = None
+    thank_you_sent: bool = False
     notes: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     
     def get_status(self) -> str:
         """Get current status of the banner."""
-        if self.print_approved:
-            return "Ready for Printing"
+        if self.thank_you_sent:
+            return "Complete - Thank You Sent"
+        elif self.submitted_to_printer:
+            return "Submitted to Printer"
+        elif self.print_approved:
+            return "Approved for Printing"
         elif self.proof_approved:
-            return "Proof Approved"
+            return "Proof Approved by Customer"
         elif self.proof_sent:
-            return "Awaiting Proof Approval"
+            return "Awaiting Customer Approval"
+        elif self.photo_verified and self.documents_verified:
+            return "Ready to Send Proof"
+        elif self.documents_verified:
+            return "Documents Verified - Photo Pending"
         elif self.payment_verified and self.info_complete:
-            return "Ready for Proof"
+            return "Paid - Awaiting Verification"
         elif self.payment_verified:
             return "Paid - Info Incomplete"
         elif self.info_complete:

@@ -263,8 +263,10 @@ class M365EmailService:
         stats = {'created': 0, 'failed': 0, 'skipped': 0}
         
         for banner in banners:
-            # Only create draft if ready and not already created
-            if banner.payment_verified and banner.info_complete and not banner.proof_sent:
+            # Only create draft if ready: payment verified, info complete, documents and photo verified, and not already sent
+            if (banner.payment_verified and banner.info_complete and 
+                banner.documents_verified and banner.photo_verified and 
+                not banner.proof_sent):
                 if self.send_proof_ready_email(banner):
                     # Mark as draft created in database (proof_sent tracks draft creation)
                     banner.proof_sent = True
