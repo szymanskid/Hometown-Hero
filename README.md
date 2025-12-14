@@ -1,1 +1,234 @@
-# Hometown-Hero
+# Hometown Hero Banner Management System
+
+A comprehensive system for managing the Millcreek Kiwanis Hometown Hero banner program. This system processes CSV files from Wix, verifies banner information completeness, tracks payments, manages client notifications, and handles the signoff process for banner printing.
+
+## Features
+
+- **CSV Import**: Automatically process hero information and payment data from Wix CSV exports
+- **Data Validation**: Verify that all required banner information is present
+- **Payment Verification**: Match and verify payment records against hero records
+- **Persistent Storage**: SQLite database stores pole locations and notes that persist across CSV imports
+- **Notification System**: Generate client notifications when proofs are ready
+- **Signoff Workflow**: Track proof approval and print approval status
+- **Status Tracking**: Monitor banners through their complete lifecycle
+
+## Installation
+
+1. **Install Python 3.8+** (if not already installed)
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Usage
+
+### Import CSV Files
+
+When you download new CSV files from Wix, import them to update the database:
+
+```bash
+python banner_manager.py import --hero "Final+Attempt+CMS+11_3.csv" --payment "MILITARY+BANNER+2026+-+Payment.csv"
+```
+
+This will:
+- Parse both CSV files
+- Check for complete banner information
+- Verify payment status
+- Update the database with current status
+
+### List All Banners
+
+View all banners and their current status:
+
+```bash
+python banner_manager.py list
+```
+
+### Filter by Status
+
+View banners with a specific status:
+
+```bash
+python banner_manager.py list --status "ready for proof"
+python banner_manager.py list --status "incomplete"
+python banner_manager.py list --status "paid"
+```
+
+### Send Notifications
+
+Generate notifications for clients whose proofs are ready:
+
+```bash
+python banner_manager.py notify --status "ready for proof"
+```
+
+This will:
+- Find all banners with complete info and verified payment
+- Generate notification messages
+- Save notifications to `notifications.txt`
+- Mark banners as "proof sent"
+
+### Update Banner Information
+
+Set the pole location for a banner:
+
+```bash
+python banner_manager.py update "John Smith" pole_location "Main St & 1st Ave"
+```
+
+Add notes about a banner:
+
+```bash
+python banner_manager.py update "John Smith" notes "Family requested corner location"
+```
+
+Mark proof as approved by client:
+
+```bash
+python banner_manager.py update "John Smith" proof_approved yes
+```
+
+Mark banner as approved for printing:
+
+```bash
+python banner_manager.py update "John Smith" print_approved yes
+```
+
+### View Summary Statistics
+
+Get a quick overview of all banner statuses:
+
+```bash
+python banner_manager.py summary
+```
+
+## Banner Status Workflow
+
+The system tracks banners through the following statuses:
+
+1. **Incomplete** - Missing required information or payment
+2. **Info Complete - Payment Pending** - All info present, waiting for payment
+3. **Paid - Info Incomplete** - Payment received, missing some information
+4. **Ready for Proof** - Both info and payment complete, ready to notify client
+5. **Awaiting Proof Approval** - Notification sent, waiting for client approval
+6. **Proof Approved** - Client approved the proof
+7. **Ready for Printing** - Final signoff given, banner can be printed
+
+## Required Banner Information
+
+Each banner must have:
+- Hero name
+- Service branch
+- Photo/image
+- Sponsor name
+- Sponsor email
+
+## Persistent Data
+
+The following information is stored in the database and persists across CSV imports:
+- Pole location assignments
+- Notes about each banner
+- Proof sent/approved status
+- Print approval status
+- All timestamp information
+
+## CSV File Formats
+
+### Hero Information CSV
+
+The system will automatically detect columns with these names (case-insensitive):
+- Name (hero name)
+- Branch/Service (service branch)
+- Rank
+- Years Served
+- Hometown/City
+- Photo/Image (photo path)
+- Sponsor Name
+- Email
+- Phone
+
+### Payment CSV
+
+The system will automatically detect columns with these names (case-insensitive):
+- Name (sponsor name)
+- Amount/Paid/Price (amount paid)
+- Date (payment date)
+- Method/Type (payment method)
+- Transaction/ID (transaction ID)
+
+## Database
+
+All data is stored in `hometown_hero.db` (SQLite database). This file contains:
+- Banner records with all status information
+- Pole location assignments
+- Notes
+- Timestamps
+
+**Important**: Do not delete this file! It contains persistent data that is not in the CSV files.
+
+## Workflow Example
+
+1. **Download CSV files from Wix**:
+   - Export hero information CSV
+   - Export payment CSV
+
+2. **Import the files**:
+   ```bash
+   python banner_manager.py import --hero heroes.csv --payment payments.csv
+   ```
+
+3. **Review status**:
+   ```bash
+   python banner_manager.py list
+   ```
+
+4. **Send notifications for ready proofs**:
+   ```bash
+   python banner_manager.py notify --status "ready for proof"
+   ```
+
+5. **Assign pole locations** (as needed):
+   ```bash
+   python banner_manager.py update "John Smith" pole_location "5th Ave & Pine St"
+   ```
+
+6. **Record client approval** (when received):
+   ```bash
+   python banner_manager.py update "John Smith" proof_approved yes
+   ```
+
+7. **Final signoff for printing**:
+   ```bash
+   python banner_manager.py update "John Smith" print_approved yes
+   ```
+
+8. **Check what's ready to print**:
+   ```bash
+   python banner_manager.py list --status "printing"
+   ```
+
+## Troubleshooting
+
+### Column Not Found Errors
+
+If the CSV column names are different than expected, the system will try to match them automatically. Check the console output during import to see which columns were detected.
+
+### Sponsor Name Mismatch
+
+Payment matching is done by exact sponsor name match (case-insensitive). If a payment isn't matched, verify the sponsor name is spelled identically in both CSV files.
+
+### Database Issues
+
+If you encounter database errors:
+1. Make sure `hometown_hero.db` is not open in another program
+2. Check file permissions
+3. If needed, you can delete the database file to start fresh (but you'll lose pole locations and notes)
+
+## Support
+
+For issues or questions, please refer to the Millcreek Kiwanis organization.
+
+## License
+
+This software is provided for use by the Millcreek Kiwanis organization.
