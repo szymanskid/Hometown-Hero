@@ -8,6 +8,11 @@
    ```bash
    pip install -r requirements.txt
    ```
+   
+   For email automation (optional):
+   ```bash
+   pip install O365
+   ```
 
 3. **Place your CSV files** in the project directory:
    - `Final+Attempt+CMS+11_3.csv` (hero information from Wix)
@@ -39,20 +44,29 @@ python banner_manager.py list --status "incomplete"
 python banner_manager.py list --status "payment pending"
 ```
 
-### Step 3: Send Proof Ready Notifications
+### Step 3: Send Notifications
 
+**Option A: Text File Notifications**
 ```bash
 python banner_manager.py notify --status "ready for proof"
 ```
 
-This generates notifications for all banners that:
-- Have complete information
-- Have verified payment (Status = CONFIRMED)
-- Haven't been sent notifications yet
+**Option B: Automated Email (Recommended)**
+```bash
+python banner_manager.py email-send
+```
 
-Notifications are saved to `notifications.txt`
+This sends professional HTML emails to all sponsors whose banners are ready. Requires one-time M365 setup (see EMAIL_SETUP.md).
 
-### Step 4: Track Banner Progress
+### Step 4: Check for Approvals (Email Only)
+
+```bash
+python banner_manager.py email-check
+```
+
+Automatically reads inbox for approval responses and updates the database.
+
+### Step 5: Track Banner Progress
 
 **Assign pole location:**
 ```bash
@@ -74,11 +88,28 @@ python banner_manager.py update "John Smith" proof_approved yes
 python banner_manager.py update "John Smith" print_approved yes
 ```
 
-### Step 5: Check What's Ready to Print
+### Step 6: Check What's Ready to Print
 
 ```bash
 python banner_manager.py list --status "printing"
 ```
+
+## Email Automation Setup (One-Time)
+
+For automated email notifications and approval tracking:
+
+1. **Create config template:**
+   ```bash
+   python banner_manager.py email-setup
+   ```
+
+2. **Follow setup guide:** See `EMAIL_SETUP.md` for complete Azure AD configuration
+
+3. **Test it:**
+   ```bash
+   python banner_manager.py email-send
+   python banner_manager.py email-check
+   ```
 
 ## Banner Status Flow
 
@@ -96,6 +127,7 @@ python banner_manager.py list --status "printing"
 - **Use the summary command** to get a quick overview: `python banner_manager.py summary`
 - **Filter by status** to focus on specific stages of the workflow
 - **Keep the database file** (`hometown_hero.db`) - it contains your pole locations and notes
+- **Email automation saves time** - Set up once, then fully automated notifications
 
 ## Common Scenarios
 
@@ -118,8 +150,12 @@ If multiple matches are found, you'll be asked to be more specific.
 
 ## Backup
 
-To backup your data, simply copy the `hometown_hero.db` file to a safe location. This file contains all your pole locations, notes, and tracking information.
+To backup your data, simply copy these files to a safe location:
+- `hometown_hero.db` - All banner data, pole locations, and notes
+- `m365_config.json` - Email configuration (if using email automation)
 
 ## Questions?
 
-Refer to the full README.md for detailed documentation.
+- **General usage**: See `README.md` for detailed documentation
+- **Email setup**: See `EMAIL_SETUP.md` for step-by-step Azure AD configuration
+- **Troubleshooting**: Check documentation or contact support
