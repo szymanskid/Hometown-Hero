@@ -175,11 +175,11 @@ def show_import_csv():
                     # Clean up temporary files
                     try:
                         os.unlink(hero_temp.name)
-                    except:
+                    except (OSError, FileNotFoundError):
                         pass
                     try:
                         os.unlink(payment_temp.name)
-                    except:
+                    except (OSError, FileNotFoundError):
                         pass
 
 
