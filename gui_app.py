@@ -109,7 +109,7 @@ def show_dashboard():
         
         col1, col2 = st.columns([2, 1])
         with col1:
-            st.dataframe(df_status, use_container_width=True, hide_index=True)
+            st.dataframe(df_status, width='stretch', hide_index=True)
         with col2:
             st.bar_chart(df_status.set_index("Status"))
     else:

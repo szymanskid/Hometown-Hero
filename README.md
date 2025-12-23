@@ -63,8 +63,6 @@ The application will open in your browser. See [GUI_README.md](GUI_README.md) fo
 
 ### Option 2: Command Line Interface
 
-### Option 2: Command Line Interface
-
 #### Import CSV Files
 
 When you download new CSV files from Wix, import them to update the database:
