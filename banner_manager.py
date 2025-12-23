@@ -40,7 +40,41 @@ def import_csvs(hero_csv: str, payment_csv: str, db: BannerDatabase):
     payments = CSVProcessor.parse_payment_csv(payment_csv)
     print(f"Found {len(payments)} payment records\n")
     
-    # Process each hero
+    # Generate import report
+    print(f"{'='*60}")
+    print("IMPORT ANALYSIS")
+    print(f"{'='*60}\n")
+    
+    import_report = CSVProcessor.generate_import_report(heroes, payments)
+    
+    print(f"Total heroes in CMS CSV:        {import_report['total_heroes']}")
+    print(f"Total payments in payment CSV:  {import_report['total_payments']}")
+    print(f"Heroes with verified payment:   {import_report['heroes_with_payment']}")
+    print(f"Heroes without payment:         {import_report['heroes_without_payment']}")
+    print(f"Payments without hero:          {import_report['payments_without_hero']}")
+    
+    if import_report['duplicate_payments']:
+        print(f"\n⚠️  Warning: {len(import_report['duplicate_payments'])} sponsors have duplicate payments")
+    
+    if import_report['unmatched_heroes']:
+        print(f"\n⚠️  Heroes without matching payment:")
+        for item in import_report['unmatched_heroes'][:10]:  # Show first 10
+            print(f"   - {item['hero_name']} (Sponsor: {item['sponsor_name']}) - {item['reason']}")
+        if len(import_report['unmatched_heroes']) > 10:
+            print(f"   ... and {len(import_report['unmatched_heroes']) - 10} more")
+    
+    if import_report['unmatched_payments']:
+        print(f"\n⚠️  Payments without matching hero:")
+        for item in import_report['unmatched_payments'][:10]:  # Show first 10
+            print(f"   - {item['sponsor_name']} (${item['amount']:.2f}) - Status: {item['status']}")
+        if len(import_report['unmatched_payments']) > 10:
+            print(f"   ... and {len(import_report['unmatched_payments']) - 10} more")
+    
+    print(f"\n{'='*60}")
+    print("UPDATING DATABASE")
+    print(f"{'='*60}\n")
+    
+    # Process each hero - ALL heroes are imported regardless of payment status
     updated_count = 0
     for hero in heroes:
         print(f"Processing: {hero.name}")
@@ -74,6 +108,7 @@ def import_csvs(hero_csv: str, payment_csv: str, db: BannerDatabase):
     
     print(f"{'='*60}")
     print(f"Import complete! Updated {updated_count} banner records.")
+    print(f"All {len(heroes)} heroes have been imported into the database.")
     print(f"{'='*60}\n")
 
 
