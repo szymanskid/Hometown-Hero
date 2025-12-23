@@ -2,6 +2,28 @@
 
 A comprehensive system for managing the Millcreek Kiwanis Hometown Hero banner program. This system processes CSV files from Wix, verifies banner information completeness, tracks payments, manages client notifications, and handles the signoff process for banner printing.
 
+## 🎉 NEW: Graphical User Interface
+
+**No more confusing command-line scripts!** We now offer a user-friendly web-based GUI:
+
+```bash
+streamlit run gui_app.py
+```
+
+👉 **See [GUI_README.md](GUI_README.md) for the complete GUI guide**
+
+The GUI provides:
+- 📊 Visual dashboard with statistics and charts
+- 📥 Drag-and-drop CSV file upload
+- 📋 Searchable, filterable banner list
+- ✏️ Point-and-click banner updates
+- 📧 Email management interface
+- 🎨 Mobile-friendly responsive design
+
+**Both the GUI and CLI work with the same database**, so you can use whichever interface you prefer!
+
+---
+
 ## Features
 
 - **CSV Import**: Automatically process hero information and payment data from Wix CSV exports
@@ -9,9 +31,10 @@ A comprehensive system for managing the Millcreek Kiwanis Hometown Hero banner p
 - **Payment Verification**: Match and verify payment records against hero records
 - **Persistent Storage**: SQLite database stores pole locations and notes that persist across CSV imports
 - **Notification System**: Generate client notifications when proofs are ready
-- **Email Automation** ⭐ NEW: Automated email notifications via Microsoft 365 with approval tracking
+- **Email Automation** ⭐: Automated email notifications via Microsoft 365 with approval tracking
 - **Signoff Workflow**: Track proof approval and print approval status
 - **Status Tracking**: Monitor banners through their complete lifecycle
+- **GUI & CLI** ⭐ NEW: Choose between graphical or command-line interface
 
 ## Installation
 
@@ -22,9 +45,25 @@ A comprehensive system for managing the Millcreek Kiwanis Hometown Hero banner p
    pip install -r requirements.txt
    ```
 
+3. **Choose your interface**:
+   - **GUI (Recommended for most users)**: `streamlit run gui_app.py`
+   - **CLI (For advanced users)**: `python banner_manager.py --help`
+
 ## Usage
 
-### Import CSV Files
+### Option 1: Graphical User Interface (Recommended)
+
+Launch the web-based GUI:
+
+```bash
+streamlit run gui_app.py
+```
+
+The application will open in your browser. See [GUI_README.md](GUI_README.md) for detailed instructions.
+
+### Option 2: Command Line Interface
+
+#### Import CSV Files
 
 When you download new CSV files from Wix, import them to update the database:
 
