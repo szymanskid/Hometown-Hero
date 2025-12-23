@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import os
 import tempfile
+import time
 
 from models import BannerRecord
 from database import BannerDatabase
@@ -236,10 +237,8 @@ def show_import_csv():
                         for dup in import_report['duplicate_payments']:
                             st.write(f"- {dup}")
                     
-                    # Wait a bit before rerun to let user see the report
-                    import time
-                    time.sleep(2)
-                    st.rerun()
+                    # Note: Not auto-rerunning so user can review the full report
+                    # User can manually refresh or navigate to another page
                     
                 except Exception as e:
                     st.error(f"❌ Error importing CSV files: {str(e)}")
