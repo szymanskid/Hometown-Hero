@@ -9,6 +9,7 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
 import os
+import tempfile
 
 from models import BannerRecord
 from database import BannerDatabase
@@ -132,22 +133,23 @@ def show_import_csv():
     if st.button("Import CSV Files", type="primary", disabled=(hero_file is None or payment_file is None)):
         if hero_file and payment_file:
             with st.spinner("Importing CSV files..."):
+                # Create temporary files with context managers
+                hero_temp = tempfile.NamedTemporaryFile(mode='wb', suffix='.csv', delete=False)
+                payment_temp = tempfile.NamedTemporaryFile(mode='wb', suffix='.csv', delete=False)
+                
                 try:
-                    # Save uploaded files temporarily
-                    hero_path = f"/tmp/hero_{datetime.now().timestamp()}.csv"
-                    payment_path = f"/tmp/payment_{datetime.now().timestamp()}.csv"
+                    # Write uploaded files to temporary files
+                    hero_temp.write(hero_file.getvalue())
+                    hero_temp.close()
                     
-                    with open(hero_path, 'wb') as f:
-                        f.write(hero_file.getvalue())
-                    
-                    with open(payment_path, 'wb') as f:
-                        f.write(payment_file.getvalue())
+                    payment_temp.write(payment_file.getvalue())
+                    payment_temp.close()
                     
                     # Process CSV files
                     db = init_database()
                     
-                    heroes = CSVProcessor.parse_hero_csv(hero_path)
-                    payments = CSVProcessor.parse_payment_csv(payment_path)
+                    heroes = CSVProcessor.parse_hero_csv(hero_temp.name)
+                    payments = CSVProcessor.parse_payment_csv(payment_temp.name)
                     
                     updated_count = 0
                     for hero in heroes:
@@ -163,16 +165,22 @@ def show_import_csv():
                         db.update_banner(banner)
                         updated_count += 1
                     
-                    # Clean up temporary files
-                    os.remove(hero_path)
-                    os.remove(payment_path)
-                    
                     st.success(f"✅ Successfully imported {len(heroes)} hero records and {len(payments)} payment records!")
                     st.info(f"Updated {updated_count} banner records in the database.")
                     st.rerun()
                     
                 except Exception as e:
                     st.error(f"❌ Error importing CSV files: {str(e)}")
+                finally:
+                    # Clean up temporary files
+                    try:
+                        os.unlink(hero_temp.name)
+                    except:
+                        pass
+                    try:
+                        os.unlink(payment_temp.name)
+                    except:
+                        pass
 
 
 def show_banner_list():
@@ -406,7 +414,9 @@ def show_email_management():
             else:
                 config = load_m365_config(config_file)
                 
-                if config.get('client_id') == 'YOUR_AZURE_AD_CLIENT_ID':
+                if not config:
+                    st.error("❌ Failed to load configuration file.")
+                elif config.get('client_id') == 'YOUR_AZURE_AD_CLIENT_ID':
                     st.error("❌ Please update the config file with real Azure AD credentials.")
                 else:
                     with st.spinner("Creating draft emails..."):
@@ -441,7 +451,9 @@ def show_email_management():
             else:
                 config = load_m365_config(config_file)
                 
-                if config.get('client_id') == 'YOUR_AZURE_AD_CLIENT_ID':
+                if not config:
+                    st.error("❌ Failed to load configuration file.")
+                elif config.get('client_id') == 'YOUR_AZURE_AD_CLIENT_ID':
                     st.error("❌ Please update the config file with real Azure AD credentials.")
                 else:
                     with st.spinner("Checking inbox..."):

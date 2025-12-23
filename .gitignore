@@ -34,6 +34,10 @@ notifications.txt
 m365_config.json
 o365_token.txt
 
+# Streamlit
+streamlit.log
+.streamlit/
+
 # IDE
 .vscode/
 .idea/

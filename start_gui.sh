@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Quick start script for Hometown Hero Banner Management GUI
 
 echo "=================================="
