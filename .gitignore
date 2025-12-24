@@ -52,3 +52,15 @@ Thumbs.db
 # CSV files (actual data files, not samples)
 Final+Attempt+CMS+11_3.csv
 MILITARY+BANNER+2026+-+Payment.csv
+*.csv
+
+# Environment and configuration files
+.env
+
+# Logs
+*.log
+logs/
+
+# Export directory
+exports/
+

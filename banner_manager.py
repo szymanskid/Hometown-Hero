@@ -16,6 +16,7 @@ from models import BannerRecord
 from database import BannerDatabase
 from csv_processor import CSVProcessor
 from notifications import NotificationService
+import config
 
 # Optional M365 email support
 try:
@@ -255,12 +256,15 @@ def show_summary(db: BannerDatabase):
     print(f"\n{'='*60}\n")
 
 
-def email_setup(config_file: str = 'm365_config.json'):
+def email_setup(config_file: str = None):
     """Setup M365 email configuration."""
     if not EMAIL_AVAILABLE:
         print("✗ Email functionality not available.")
         print("  Install with: pip install O365")
         return
+    
+    if config_file is None:
+        config_file = config.get_m365_config_path()
     
     print(f"\n{'='*60}")
     print("M365 EMAIL SETUP")
@@ -269,12 +273,15 @@ def email_setup(config_file: str = 'm365_config.json'):
     create_m365_config_template(config_file)
 
 
-def email_send(db: BannerDatabase, config_file: str = 'm365_config.json'):
+def email_send(db: BannerDatabase, config_file: str = None):
     """Create draft emails for proof ready notifications."""
     if not EMAIL_AVAILABLE:
         print("✗ Email functionality not available.")
         print("  Install with: pip install O365")
         return
+    
+    if config_file is None:
+        config_file = config.get_m365_config_path()
     
     print(f"\n{'='*60}")
     print("CREATING DRAFT EMAILS FOR PROOF READY NOTIFICATIONS")
@@ -334,26 +341,29 @@ def email_send(db: BannerDatabase, config_file: str = 'm365_config.json'):
     print(f"{'='*60}\n")
 
 
-def email_check(db: BannerDatabase, config_file: str = 'm365_config.json', days: int = 7):
+def email_check(db: BannerDatabase, config_file: str = None, days: int = 7):
     """Check for approval responses in email."""
     if not EMAIL_AVAILABLE:
         print("✗ Email functionality not available.")
         print("  Install with: pip install O365")
         return
     
+    if config_file is None:
+        config_file = config.get_m365_config_path()
+    
     print(f"\n{'='*60}")
     print("CHECKING EMAIL FOR APPROVALS")
     print(f"{'='*60}\n")
     
     # Load config
-    config = load_m365_config(config_file)
-    if not config:
+    m365_config = load_m365_config(config_file)
+    if not m365_config:
         print(f"✗ Configuration file not found: {config_file}")
         print(f"  Run 'python banner_manager.py email-setup' to create it")
         return
     
     # Validate config
-    if config.get('client_id') == 'YOUR_AZURE_AD_CLIENT_ID':
+    if m365_config.get('client_id') == 'YOUR_AZURE_AD_CLIENT_ID':
         print("✗ Configuration file not updated with real credentials")
         print(f"  Please edit {config_file} with your Azure AD app credentials")
         return
@@ -361,9 +371,9 @@ def email_check(db: BannerDatabase, config_file: str = 'm365_config.json', days:
     # Initialize email service
     try:
         email_service = M365EmailService(
-            client_id=config['client_id'],
-            client_secret=config['client_secret'],
-            tenant_id=config.get('tenant_id')
+            client_id=m365_config['client_id'],
+            client_secret=m365_config['client_secret'],
+            tenant_id=m365_config.get('tenant_id')
         )
     except Exception as e:
         print(f"✗ Error initializing email service: {e}")
@@ -471,12 +481,13 @@ Examples:
     # Email commands
     if EMAIL_AVAILABLE:
         email_setup_parser = subparsers.add_parser('email-setup', help='Setup M365 email configuration')
+        email_setup_parser.add_argument('--config', default=None, help='Path to M365 config file (default: from HH_M365_CONFIG or ./m365_config.json)')
         
         email_send_parser = subparsers.add_parser('email-send', help='Create draft emails in M365 Drafts folder for manual sending')
-        email_send_parser.add_argument('--config', default='m365_config.json', help='Path to M365 config file')
+        email_send_parser.add_argument('--config', default=None, help='Path to M365 config file (default: from HH_M365_CONFIG or ./m365_config.json)')
         
         email_check_parser = subparsers.add_parser('email-check', help='Check inbox for approval responses')
-        email_check_parser.add_argument('--config', default='m365_config.json', help='Path to M365 config file')
+        email_check_parser.add_argument('--config', default=None, help='Path to M365 config file (default: from HH_M365_CONFIG or ./m365_config.json)')
         email_check_parser.add_argument('--days', type=int, default=7, help='Days to look back for emails')
     
     args = parser.parse_args()
@@ -500,7 +511,7 @@ Examples:
     elif args.command == 'summary':
         show_summary(db)
     elif args.command == 'email-setup':
-        email_setup()
+        email_setup(args.config if hasattr(args, 'config') else None)
     elif args.command == 'email-send':
         email_send(db, args.config)
     elif args.command == 'email-check':

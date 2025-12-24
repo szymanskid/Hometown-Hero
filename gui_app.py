@@ -16,6 +16,7 @@ from models import BannerRecord
 from database import BannerDatabase
 from csv_processor import CSVProcessor
 from notifications import NotificationService
+import config
 
 # Optional M365 email support
 try:
@@ -73,6 +74,40 @@ def show_dashboard():
     
     db = init_database()
     banners = db.get_all_banners()
+    
+    # Configuration Status Panel
+    with st.expander("⚙️ Configuration Status", expanded=False):
+        config_summary = config.get_configuration_summary()
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Database Path:**")
+            st.code(config_summary['db_path'])
+            if config_summary['db_valid']:
+                st.success("✅ Database accessible")
+            else:
+                st.error("❌ Database issues detected")
+            
+            if config_summary['db_on_network']:
+                st.warning("⚠️ Database is on network storage - ensure only one user writes at a time")
+        
+        with col2:
+            st.write("**M365 Config Path:**")
+            st.code(config_summary['m365_config_path'])
+            if config_summary['m365_valid']:
+                st.success("✅ M365 config path OK")
+            else:
+                st.warning("⚠️ M365 config not yet created")
+        
+        if config_summary['config_dir']:
+            st.info(f"📁 Using external config directory: {config_summary['config_dir']}")
+        
+        # Display any warnings
+        if config_summary['warnings']:
+            st.divider()
+            st.subheader("⚠️ Configuration Warnings")
+            for warning in config_summary['warnings']:
+                st.warning(warning)
     
     # Summary statistics
     col1, col2, col3, col4 = st.columns(4)
@@ -434,7 +469,7 @@ def show_email_management():
         st.error("❌ Email functionality not available. Install with: `pip install O365`")
         return
     
-    config_file = 'm365_config.json'
+    config_file = config.get_m365_config_path()
     
     # Check if config exists
     config_exists = Path(config_file).exists()
