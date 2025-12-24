@@ -20,6 +20,96 @@ The Hometown Hero Banner Management System now includes a user-friendly graphica
 
 The application will automatically open in your default web browser at `http://localhost:8501`
 
+## 📦 Deployment on Shared Drive
+
+For teams working from a shared network drive (e.g., `Q:\HHBanners2026`), the system supports external data storage for safe code updates and per-machine Python environments.
+
+### Quick Setup for Shared Deployment
+
+1. **Clone repository to shared drive**:
+   ```bash
+   cd Q:\HHBanners2026
+   git clone https://github.com/szymanskid/Hometown-Hero.git
+   ```
+
+2. **Create external data folder**:
+   ```bash
+   mkdir Q:\HHBanners2026-data
+   ```
+
+3. **Configure paths** in `Q:\HHBanners2026-data\.env`:
+   ```
+   HH_DB_PATH=Q:\HHBanners2026-data\hometown_hero.db
+   HH_M365_CONFIG=Q:\HHBanners2026-data\m365_config.json
+   HH_EXPORT_DIR=Q:\HHBanners2026-data\exports
+   ```
+
+4. **Set up per-machine Python** (each computer):
+   ```bash
+   python -m venv C:\venvs\hometown-hero
+   C:\venvs\hometown-hero\Scripts\activate
+   pip install -r Q:\HHBanners2026\Hometown-Hero\requirements.txt
+   ```
+
+5. **Run using the helper script**:
+   - Edit `scripts\run_app.bat`:
+     - Set `VENV_PATH=C:\venvs\hometown-hero`
+     - Set `DATA_DIR=Q:\HHBanners2026-data`
+   - Double-click `scripts\run_app.bat` to launch
+
+### Updating Code
+
+When updates are available, use the update script:
+```bash
+cd Q:\HHBanners2026\Hometown-Hero
+scripts\update_code.bat
+```
+
+This safely updates code without touching your data files.
+
+### Configuration Status Panel
+
+The Dashboard now includes a "Configuration Status" panel that shows:
+- **Database Path**: Current database location and accessibility
+- **M365 Config Path**: Email configuration location
+- **Network Storage Warning**: Alert if database is on network drive (important for concurrent access)
+- **Configuration Warnings**: Any issues with paths or permissions
+
+Click the panel to expand and view details.
+
+### Environment Variables
+
+You can configure paths using environment variables or `.env` file:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HH_DB_PATH` | `./hometown_hero.db` | Path to SQLite database |
+| `HH_M365_CONFIG` | `./m365_config.json` | Path to M365 config |
+| `HH_EXPORT_DIR` | `./exports` | Directory for exports |
+| `HH_CONFIG_DIR` | (none) | External config directory |
+
+**Using .env file** (recommended for shared deployment):
+```bash
+# Create Q:\HHBanners2026-data\.env
+HH_DB_PATH=Q:\HHBanners2026-data\hometown_hero.db
+HH_M365_CONFIG=Q:\HHBanners2026-data\m365_config.json
+HH_EXPORT_DIR=Q:\HHBanners2026-data\exports
+
+# Set environment variable to use external config
+set HH_CONFIG_DIR=Q:\HHBanners2026-data
+```
+
+### Multi-User Access
+
+**Important considerations for shared deployment:**
+- Only one user should write to the database at a time
+- Multiple users can safely browse/view data
+- Consider running Streamlit centrally on a server for browser-only access:
+  ```bash
+  streamlit run gui_app.py --server.address 0.0.0.0 --server.port 8501
+  ```
+- Check the Configuration Status panel for network storage warnings
+
 ## 🎯 Features
 
 The GUI provides a streamlined interface for all banner management tasks:
@@ -162,9 +252,11 @@ The Streamlit interface is responsive and works on tablets and mobile devices. S
 ## 🔒 Security Notes
 
 - The GUI runs locally on your computer by default
-- Database file remains on your local system
-- Email credentials are stored in `m365_config.json` locally
+- Database and configuration files can be stored externally (e.g., on a shared drive)
+- Email credentials in `m365_config.json` should be protected with appropriate file permissions
 - When running on a network, ensure your network is trusted
+- The Configuration Status panel warns when database is on network storage
+- Use `.gitignore` to prevent committing sensitive data (database, config files already ignored)
 
 ## 🐛 Troubleshooting
 
