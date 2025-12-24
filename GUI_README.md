@@ -33,6 +33,12 @@ The GUI provides a streamlined interface for all banner management tasks:
 - Upload hero information and payment CSV files
 - Drag-and-drop file upload interface
 - Automatic processing and database updates
+- **NEW**: Comprehensive import diagnostics report showing:
+  - Total heroes and payments imported
+  - Match statistics (heroes with/without payments)
+  - Detailed tables of unmatched records
+  - Downloadable mismatch CSV files for analysis
+  - Duplicate payment detection
 
 ### 📋 Banner List
 - View all banners in an organized list
@@ -70,6 +76,12 @@ The GUI provides a streamlined interface for all banner management tasks:
    - Upload your hero information CSV
    - Upload your payment CSV
    - Click "Import CSV Files"
+   - **Review the import summary report** to see:
+     - How many heroes and payments were imported
+     - Which heroes don't have matching payments
+     - Which payments don't have matching heroes
+     - Any duplicate payment records detected
+   - Download mismatch CSV files if you need to investigate further
 
 3. **View your banners**:
    - Go to "Dashboard" to see overall statistics
@@ -80,7 +92,9 @@ The GUI provides a streamlined interface for all banner management tasks:
 1. **Import Latest Data**:
    - Navigate to "Import CSV"
    - Upload fresh CSV exports from Wix
+   - Review the import summary to see match statistics
    - System preserves your notes and pole locations
+   - All heroes are imported, even without payments
 
 2. **Verify Documents and Photos**:
    - Go to "Update Banner"
@@ -178,6 +192,35 @@ streamlit run gui_app.py --server.port 8502
 - Ensure CSV files are properly formatted
 - Check that files contain the expected columns
 - See README.md for CSV format details
+
+### Import shows fewer heroes than expected
+**The import diagnostics will help you troubleshoot this!**
+
+After import, check the **Import Summary Report** that appears:
+1. **Total Heroes** - Should match the number of PUBLISHED entries in your hero CSV
+2. **Heroes without Payment** - Shows how many heroes don't have matching payments
+3. **Unmatched Heroes table** - Lists specific heroes and why they're unmatched
+
+**Common reasons for mismatches:**
+- Sponsor names spelled differently in hero vs payment CSV
+- Extra whitespace or capitalization differences (system auto-normalizes these)
+- Payment status is not "CONFIRMED" in the payment CSV
+- Missing sponsor name in hero CSV
+
+**Important:** All heroes are still imported into the database, even without payments. They'll show status "Info Complete - Payment Pending" until a payment is matched.
+
+### Viewing detailed mismatch information
+1. After import, scroll down to see the unmatched tables
+2. Click "Download Unmatched Heroes CSV" to save a detailed report
+3. Open the CSV in Excel to review which heroes are missing payments and why
+4. Compare sponsor names between your two CSV files to find spelling differences
+
+### Example scenario: 56 heroes, 40 payments
+- ✅ All 56 heroes will be imported
+- ✅ Dashboard will show "Total Banners: 56"
+- ✅ Import report will show "Heroes with Payment: 40"
+- ✅ Import report will show "Heroes without Payment: 16"
+- ✅ The 16 unmatched heroes will be listed in a table with reasons
 
 ## 📚 Additional Resources
 

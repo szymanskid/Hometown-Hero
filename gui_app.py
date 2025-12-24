@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import os
 import tempfile
+import time
 
 from models import BannerRecord
 from database import BannerDatabase
@@ -151,6 +152,10 @@ def show_import_csv():
                     heroes = CSVProcessor.parse_hero_csv(hero_temp.name)
                     payments = CSVProcessor.parse_payment_csv(payment_temp.name)
                     
+                    # Generate import report BEFORE updating database
+                    import_report = CSVProcessor.generate_import_report(heroes, payments)
+                    
+                    # Update database - ALL heroes are processed
                     updated_count = 0
                     for hero in heroes:
                         banner = db.get_or_create_banner(hero.name, hero.sponsor_name or "Unknown")
@@ -165,12 +170,80 @@ def show_import_csv():
                         db.update_banner(banner)
                         updated_count += 1
                     
+                    # Display success message
                     st.success(f"✅ Successfully imported {len(heroes)} hero records and {len(payments)} payment records!")
                     st.info(f"Updated {updated_count} banner records in the database.")
-                    st.rerun()
+                    
+                    # Display detailed import report
+                    st.divider()
+                    st.subheader("📊 Import Summary Report")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Total Heroes", import_report['total_heroes'])
+                    with col2:
+                        st.metric("Total Payments", import_report['total_payments'])
+                    with col3:
+                        st.metric("Heroes with Payment", import_report['heroes_with_payment'])
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Heroes without Payment", import_report['heroes_without_payment'], 
+                                 delta=None if import_report['heroes_without_payment'] == 0 else "⚠️")
+                    with col2:
+                        st.metric("Payments without Hero", import_report['payments_without_hero'],
+                                 delta=None if import_report['payments_without_hero'] == 0 else "⚠️")
+                    
+                    # Show unmatched heroes
+                    if import_report['unmatched_heroes']:
+                        st.divider()
+                        st.subheader("⚠️ Heroes Without Matching Payment")
+                        st.write(f"Found {len(import_report['unmatched_heroes'])} heroes without verified payment:")
+                        
+                        unmatched_df = pd.DataFrame(import_report['unmatched_heroes'])
+                        st.dataframe(unmatched_df, use_container_width=True, hide_index=True)
+                        
+                        # Provide download button for unmatched heroes
+                        csv = unmatched_df.to_csv(index=False)
+                        st.download_button(
+                            label="Download Unmatched Heroes CSV",
+                            data=csv,
+                            file_name=f"unmatched_heroes_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                            mime="text/csv"
+                        )
+                    
+                    # Show unmatched payments
+                    if import_report['unmatched_payments']:
+                        st.divider()
+                        st.subheader("⚠️ Payments Without Matching Hero")
+                        st.write(f"Found {len(import_report['unmatched_payments'])} payments without corresponding hero record:")
+                        
+                        unmatched_payments_df = pd.DataFrame(import_report['unmatched_payments'])
+                        st.dataframe(unmatched_payments_df, use_container_width=True, hide_index=True)
+                        
+                        # Provide download button for unmatched payments
+                        csv = unmatched_payments_df.to_csv(index=False)
+                        st.download_button(
+                            label="Download Unmatched Payments CSV",
+                            data=csv,
+                            file_name=f"unmatched_payments_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                            mime="text/csv"
+                        )
+                    
+                    # Show duplicate payments
+                    if import_report['duplicate_payments']:
+                        st.divider()
+                        st.warning(f"⚠️ Found {len(import_report['duplicate_payments'])} sponsors with duplicate payment records:")
+                        for dup in import_report['duplicate_payments']:
+                            st.write(f"- {dup}")
+                    
+                    # Note: Not auto-rerunning so user can review the full report
+                    # User can manually refresh or navigate to another page
                     
                 except Exception as e:
                     st.error(f"❌ Error importing CSV files: {str(e)}")
+                    import traceback
+                    st.code(traceback.format_exc())
                 finally:
                     # Clean up temporary files
                     try:

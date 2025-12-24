@@ -258,27 +258,36 @@ The following information is stored in the database and persists across CSV impo
 
 ## CSV File Formats
 
-### Hero Information CSV
+### Hero Information CSV (from Wix CMS)
 
-The system will automatically detect columns with these names (case-insensitive):
-- Name (hero name)
-- Branch/Service (service branch)
-- Rank
-- Years Served
-- Hometown/City
-- Photo/Image (photo path)
-- Sponsor Name
-- Email
-- Phone
+Expected columns (from Wix CMS export):
+- **Status** - Must be "PUBLISHED" (DRAFT entries are skipped)
+- **Service Name** - Hero's name (required)
+- **Name of Buyer** - Sponsor's name (required for payment matching)
+- **Email** - Sponsor's email address
+- **Phone** - Sponsor's phone number
+- **Branch** - Service branch (Army, Navy, Air Force, Marines, etc.)
+- **Rank** - Military rank
+- **Service Details** - Years served or service description
+- **Image** - Photo path (must start with "wix:")
 
-### Payment CSV
+### Payment CSV (from Wix Payments)
 
-The system will automatically detect columns with these names (case-insensitive):
-- Name (sponsor name)
-- Amount/Paid/Price (amount paid)
-- Date (payment date)
-- Method/Type (payment method)
-- Transaction/ID (transaction ID)
+Expected columns (from Wix payment export):
+- **Your Name** - Sponsor's name (must match "Name of Buyer" in hero CSV)
+- **Status** - Must be "CONFIRMED" for payment to count
+- **One Banner** - Contains amount (e.g., `[["One Banner","$95"]]`)
+- **Created date** - Payment date
+- **Id** - Transaction ID
+
+### Name Matching
+
+The system matches heroes to payments using the **sponsor name** as the join key. The matching is:
+- **Case-insensitive**: "John Smith" matches "JOHN SMITH"
+- **Whitespace-normalized**: "John  Smith" matches "John Smith"
+- **Trimmed**: "  John Smith  " matches "John Smith"
+
+**Important**: All heroes are imported into the database, even without matching payments. Heroes without payments will show status "Info Complete - Payment Pending".
 
 ## Database
 
@@ -333,13 +342,61 @@ All data is stored in `hometown_hero.db` (SQLite database). This file contains:
 
 ## Troubleshooting
 
-### Column Not Found Errors
+### Import Shows Fewer Records Than Expected
 
-If the CSV column names are different than expected, the system will try to match them automatically. Check the console output during import to see which columns were detected.
+The import process now includes comprehensive diagnostics to help identify why records might be missing:
+
+**Common Causes:**
+1. **DRAFT entries** - Only "PUBLISHED" status entries are imported from the hero CSV
+2. **Missing hero name** - Entries without a service name are skipped
+3. **Payment matching** - Heroes without matching payments are still imported, but flagged as "Payment Pending"
+
+**How to Diagnose:**
+
+When importing via GUI:
+- Check the "Import Summary Report" that appears after import
+- Review the "Heroes Without Matching Payment" table
+- Download the mismatch CSV files for detailed analysis
+
+When importing via CLI:
+- Check the "IMPORT ANALYSIS" section in the output
+- Look for counts of:
+  - Total heroes and payments
+  - Heroes with/without payment
+  - Payments without matching hero
+  - Skipped DRAFT or invalid entries
+
+**Example:** If you have 56 records in the CMS but only 40 payments:
+- ✅ All 56 heroes will be imported
+- ✅ 40 will show as "Paid - Awaiting Verification"
+- ✅ 16 will show as "Info Complete - Payment Pending"
+- ✅ The import report will list all 16 unmatched heroes
 
 ### Sponsor Name Mismatch
 
-Payment matching is done by exact sponsor name match (case-insensitive). If a payment isn't matched, verify the sponsor name is spelled identically in both CSV files.
+If payments aren't matching to heroes, check for these issues:
+
+1. **Different spelling** - "Jane Doe" vs "Jane M. Doe"
+2. **Extra spaces** - "John  Smith" (double space)
+3. **Case differences** - System handles this automatically, but verify names look the same
+4. **Special characters** - Ensure consistent punctuation
+
+**Solution:** The system now automatically normalizes names (trim whitespace, consistent case), but if mismatches persist, check the "Import Summary Report" to see exactly which names don't match.
+
+### Duplicate Payment Records
+
+If the import report shows duplicate payments:
+- The system will only use the first payment record for matching
+- Review the duplicate sponsor names in the warning message
+- Check your Wix payment export for duplicate transactions
+- Consider combining or removing duplicate payment records
+
+### Column Not Found Errors
+
+If you see "column not found" errors during import:
+- Ensure you're using CSV exports directly from Wix
+- Don't modify column names in the CSV files
+- Check that the CSV is using the expected Wix format
 
 ### Database Issues
 
@@ -347,6 +404,24 @@ If you encounter database errors:
 1. Make sure `hometown_hero.db` is not open in another program
 2. Check file permissions
 3. If needed, you can delete the database file to start fresh (but you'll lose pole locations and notes)
+
+### Viewing Import Diagnostics
+
+**GUI Method:**
+1. Go to "Import CSV" page
+2. Upload both CSV files
+3. Click "Import CSV Files"
+4. Review the detailed import summary report
+5. Download mismatch CSVs if needed
+
+**CLI Method:**
+```bash
+python banner_manager.py import --hero heroes.csv --payment payments.csv
+```
+Look for the "IMPORT ANALYSIS" section showing:
+- Total heroes/payments parsed
+- Match statistics
+- List of unmatched heroes and payments
 
 ## Support
 
