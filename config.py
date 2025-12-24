@@ -139,7 +139,7 @@ def validate_m365_config_path() -> Tuple[bool, str]:
 
 
 def is_network_path(path: str) -> bool:
-    """
+    r"""
     Check if a path is on a network drive.
     
     On Windows, checks for UNC paths (\\server\share) or mapped drives that resolve to UNC.
