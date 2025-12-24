@@ -6,10 +6,18 @@ making it easy to deploy the application on shared drives with external data sto
 """
 
 import os
+import subprocess
 from pathlib import Path
 from typing import Tuple, Optional
 from dotenv import load_dotenv
 import warnings
+
+# Optional imports for network path detection
+try:
+    import ctypes
+    CTYPES_AVAILABLE = True
+except ImportError:
+    CTYPES_AVAILABLE = False
 
 
 def load_configuration():
@@ -157,23 +165,20 @@ def is_network_path(path: str) -> bool:
         if path_str.startswith('\\\\'):
             return True
         
-        # Check if drive letter maps to network (requires additional libs, so basic check)
-        # This is a simple heuristic - not perfect but good enough
-        try:
-            import ctypes
-            drive = path_str[:3] if len(path_str) >= 3 else None
-            if drive and drive[1] == ':':
-                # GetDriveType returns 4 for network drives
-                drive_type = ctypes.windll.kernel32.GetDriveTypeW(drive)
-                return drive_type == 4
-        except (ImportError, OSError, AttributeError):
-            # ctypes not available or Windows API call failed
-            pass
+        # Check if drive letter maps to network (requires ctypes)
+        if CTYPES_AVAILABLE:
+            try:
+                drive = path_str[:3] if len(path_str) >= 3 else None
+                if drive and drive[1] == ':':
+                    # GetDriveType returns 4 for network drives
+                    drive_type = ctypes.windll.kernel32.GetDriveTypeW(drive)
+                    return drive_type == 4
+            except (OSError, AttributeError):
+                # Windows API call failed
+                pass
     
     # Unix-like systems: check mount points (basic check)
-    # A more thorough check would parse /proc/mounts or use platform-specific APIs
     try:
-        import subprocess
         result = subprocess.run(['df', '-T', str(path_obj)], 
                               capture_output=True, text=True, timeout=2)
         if result.returncode == 0:

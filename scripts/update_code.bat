@@ -50,9 +50,7 @@ if errorlevel 1 (
 
 echo.
 echo Checking if update is available...
-git rev-list HEAD..origin/main --count > temp_count.txt
-set /p UPDATE_COUNT=<temp_count.txt
-del temp_count.txt
+for /f %%i in ('git rev-list HEAD..origin/main --count') do set UPDATE_COUNT=%%i
 
 if "%UPDATE_COUNT%"=="0" (
     echo.

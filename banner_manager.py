@@ -511,7 +511,7 @@ Examples:
     elif args.command == 'summary':
         show_summary(db)
     elif args.command == 'email-setup':
-        email_setup(args.config if hasattr(args, 'config') else None)
+        email_setup(args.config)
     elif args.command == 'email-send':
         email_send(db, args.config)
     elif args.command == 'email-check':
