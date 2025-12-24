@@ -166,7 +166,8 @@ def is_network_path(path: str) -> bool:
                 # GetDriveType returns 4 for network drives
                 drive_type = ctypes.windll.kernel32.GetDriveTypeW(drive)
                 return drive_type == 4
-        except Exception:
+        except (ImportError, OSError, AttributeError):
+            # ctypes not available or Windows API call failed
             pass
     
     # Unix-like systems: check mount points (basic check)
@@ -181,7 +182,8 @@ def is_network_path(path: str) -> bool:
             for fs_type in network_fs:
                 if fs_type in result.stdout.lower():
                     return True
-    except Exception:
+    except (subprocess.SubprocessError, OSError, subprocess.TimeoutExpired, FileNotFoundError):
+        # df command not available or failed
         pass
     
     return False
