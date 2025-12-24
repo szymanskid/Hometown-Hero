@@ -49,6 +49,139 @@ The GUI provides:
    - **GUI (Recommended for most users)**: `streamlit run gui_app.py`
    - **CLI (For advanced users)**: `python banner_manager.py --help`
 
+## 📦 Deployment on Shared Drive
+
+The system supports safe deployment on shared network drives (e.g., Q:\HHBanners2026) with external data storage. This allows multiple users to share code while keeping data and configuration separate.
+
+### Key Benefits
+
+- **Safe Updates**: Update code from Git without affecting your data
+- **Per-Machine Python**: Each computer can use its own Python virtual environment
+- **Shared Data**: Database and configuration live in a shared folder outside the code repository
+- **Concurrent Access**: Safe for multiple users (with proper coordination for database writes)
+
+### Initial Setup on Shared Drive
+
+1. **Clone the repository**:
+   ```bash
+   cd Q:\HHBanners2026
+   git clone https://github.com/szymanskid/Hometown-Hero.git
+   cd Hometown-Hero
+   ```
+
+2. **Create external data folder** (one-time, separate from code):
+   ```bash
+   mkdir Q:\HHBanners2026-data
+   ```
+
+3. **Create configuration** in `Q:\HHBanners2026-data\.env`:
+   ```bash
+   HH_DB_PATH=Q:\HHBanners2026-data\hometown_hero.db
+   HH_M365_CONFIG=Q:\HHBanners2026-data\m365_config.json
+   HH_EXPORT_DIR=Q:\HHBanners2026-data\exports
+   ```
+
+4. **Set up per-machine Python environment**:
+   ```bash
+   # On each computer (can be in a local folder like C:\venvs)
+   python -m venv C:\venvs\hometown-hero
+   C:\venvs\hometown-hero\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+5. **Configure the run script** `scripts\run_app.bat`:
+   - Edit `VENV_PATH` to point to your local venv (e.g., `C:\venvs\hometown-hero`)
+   - Edit `DATA_DIR` to point to the external data folder (e.g., `Q:\HHBanners2026-data`)
+
+### Updating Code (Safely)
+
+When new code is available, use the update script:
+
+**Windows**:
+```bash
+cd Q:\HHBanners2026\Hometown-Hero
+scripts\update_code.bat
+```
+
+**Manual Git Update** (alternative):
+```bash
+cd Q:\HHBanners2026\Hometown-Hero
+git fetch origin main
+git switch main
+git pull --ff-only origin main
+```
+
+**Important**: This updates only code files. Your data and configuration in `Q:\HHBanners2026-data` are never touched.
+
+### Running the Application
+
+**Windows** (using the helper script):
+```bash
+cd Q:\HHBanners2026\Hometown-Hero
+scripts\run_app.bat
+```
+
+**Manual** (any platform):
+```bash
+cd Q:\HHBanners2026\Hometown-Hero
+# Activate your venv
+C:\venvs\hometown-hero\Scripts\activate  # Windows
+# source /path/to/venv/bin/activate      # Linux/Mac
+
+# Set environment variables (or use .env file)
+set HH_DB_PATH=Q:\HHBanners2026-data\hometown_hero.db           # Windows
+set HH_M365_CONFIG=Q:\HHBanners2026-data\m365_config.json       # Windows
+# export HH_DB_PATH=/path/to/data/hometown_hero.db              # Linux/Mac
+
+# Run the app
+streamlit run gui_app.py
+```
+
+### Environment Variables Reference
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HH_DB_PATH` | `./hometown_hero.db` | Path to SQLite database file |
+| `HH_M365_CONFIG` | `./m365_config.json` | Path to Microsoft 365 config JSON |
+| `HH_EXPORT_DIR` | `./exports` | Directory for exported CSV files |
+| `HH_CONFIG_DIR` | (none) | If set, loads `.env` from this directory |
+
+### Configuration File (.env)
+
+Instead of setting environment variables manually, create a `.env` file:
+
+**Option 1**: In the repository root (for single-user or local deployment):
+```bash
+# Q:\HHBanners2026\Hometown-Hero\.env
+HH_DB_PATH=Q:\HHBanners2026-data\hometown_hero.db
+HH_M365_CONFIG=Q:\HHBanners2026-data\m365_config.json
+HH_EXPORT_DIR=Q:\HHBanners2026-data\exports
+```
+
+**Option 2**: In an external directory (for shared deployment):
+```bash
+# Set this environment variable to point to external config folder
+set HH_CONFIG_DIR=Q:\HHBanners2026-data
+
+# Then create Q:\HHBanners2026-data\.env with paths
+HH_DB_PATH=Q:\HHBanners2026-data\hometown_hero.db
+HH_M365_CONFIG=Q:\HHBanners2026-data\m365_config.json
+HH_EXPORT_DIR=Q:\HHBanners2026-data\exports
+```
+
+### Multi-User Considerations
+
+- **Database writes**: Only one user should modify data at a time to avoid SQLite conflicts
+- **Read-only access**: Multiple users can safely view/browse data simultaneously
+- **Central deployment**: Consider running Streamlit centrally with `--server.address 0.0.0.0 --server.port 8501` for browser-only access
+
+### Checking Configuration
+
+The GUI Dashboard shows your current configuration in the "Configuration Status" panel:
+- Database path and accessibility
+- M365 config path and status
+- Whether database is on network storage (with concurrent access warning)
+
 ## Usage
 
 ### Option 1: Graphical User Interface (Recommended)

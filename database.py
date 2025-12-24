@@ -4,14 +4,19 @@ import sqlite3
 from datetime import datetime
 from typing import List, Optional
 from models import BannerRecord
+import config
 
 
 class BannerDatabase:
     """Manages persistent storage for banner records."""
     
-    def __init__(self, db_path: str = "hometown_hero.db"):
-        """Initialize database connection."""
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        """Initialize database connection.
+        
+        Args:
+            db_path: Path to database file. If None, uses configured path from environment.
+        """
+        self.db_path = db_path if db_path is not None else config.get_db_path()
         self.init_database()
     
     def init_database(self):

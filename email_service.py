@@ -6,6 +6,7 @@ from typing import List, Optional, Dict
 from datetime import datetime, timedelta
 from models import BannerRecord
 from database import BannerDatabase
+import config
 
 try:
     from O365 import Account, FileSystemTokenBackend
@@ -280,7 +281,7 @@ class M365EmailService:
         return stats
 
 
-def load_m365_config(config_file: str = 'm365_config.json') -> Optional[Dict]:
+def load_m365_config(config_file: str = None) -> Optional[Dict]:
     """
     Load M365 configuration from JSON file.
     
@@ -292,11 +293,14 @@ def load_m365_config(config_file: str = 'm365_config.json') -> Optional[Dict]:
     }
     
     Args:
-        config_file: Path to configuration file
+        config_file: Path to configuration file. If None, uses configured path from environment.
         
     Returns:
         Configuration dictionary or None if file doesn't exist
     """
+    if config_file is None:
+        config_file = config.get_m365_config_path()
+    
     if os.path.exists(config_file):
         try:
             with open(config_file, 'r') as f:
@@ -307,13 +311,16 @@ def load_m365_config(config_file: str = 'm365_config.json') -> Optional[Dict]:
     return None
 
 
-def create_m365_config_template(config_file: str = 'm365_config.json'):
+def create_m365_config_template(config_file: str = None):
     """
     Create a template M365 configuration file.
     
     Args:
-        config_file: Path to create configuration file
+        config_file: Path to create configuration file. If None, uses configured path from environment.
     """
+    if config_file is None:
+        config_file = config.get_m365_config_path()
+    
     template = {
         "client_id": "YOUR_AZURE_AD_CLIENT_ID",
         "client_secret": "YOUR_AZURE_AD_CLIENT_SECRET",

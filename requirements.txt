@@ -2,3 +2,4 @@ pandas>=2.0.0
 python-dateutil>=2.8.2
 O365>=2.0.27
 streamlit>=1.28.0
+python-dotenv>=1.0.0
